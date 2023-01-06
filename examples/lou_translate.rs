@@ -45,11 +45,11 @@ fn main() {
     let stdout = io::stdout();
     let mut olock = stdout.lock();
     for line in ilock.lines() {
-        writeln!(olock, "{}", louis.translate_simple(
-            &table, 
-            &line.unwrap(), 
-            matches.is_present("backward"), 
-            0)
-        );
+        writeln!(
+            olock,
+            "{}",
+            louis.translate_simple(&table, &line.unwrap(), matches.is_present("backward"), 0)
+        )
+        .unwrap();
     }
 }

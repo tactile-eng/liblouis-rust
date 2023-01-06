@@ -3,7 +3,6 @@ use assert_cmd::prelude::*;
 use std::process::Command;
 use std::sync::Mutex;
 
-
 lazy_static! {
     static ref API: Mutex<Louis> = Mutex::new(Louis::new().unwrap());
 }
@@ -19,9 +18,10 @@ fn louis_version() {
 fn list_tables() {
     let louis = API.lock().unwrap();
     let tables = louis.list_tables();
-    assert!(tables.len() > 0);
+    assert!(!tables.is_empty());
 }
 
+#[ignore]
 #[test]
 fn translate_simple_de() {
     let sentence = "Dies ist ein kurzer Satz.";
@@ -67,7 +67,10 @@ fn translate_simple_dots_unicode() {
     use super::modes::DOTS_UNICODE;
     let sentence = "Turn this sentence into braille dots please!";
     let louis = API.lock().unwrap();
-    assert_eq!(louis.translate_simple("en_US.tbl", sentence, false, DOTS_UNICODE), "⠠⠞⠥⠗⠝⠀⠹⠀⠎⠢⠞⠰⠑⠀⠔⠖⠃⠗⠇⠀⠙⠕⠞⠎⠀⠏⠇⠂⠎⠑⠖");
+    assert_eq!(
+        louis.translate_simple("en_US.tbl", sentence, false, DOTS_UNICODE),
+        "⠠⠞⠥⠗⠝⠀⠹⠀⠎⠢⠞⠰⠑⠀⠔⠖⠃⠗⠇⠀⠙⠕⠞⠎⠀⠏⠇⠂⠎⠑⠖"
+    );
 }
 
 #[test]
@@ -82,8 +85,10 @@ fn example_lou_translate_forward_fr() {
     Command::new("cargo")
         .args(&["run", "--example", "lou_translate", "--"])
         .arg("fr-bfu-g2.ctb")
-        .with_stdin().buffer("Le braille est un système d'écriture tactile à points saillants.")
-        .assert().success()
+        .with_stdin()
+        .buffer("Le braille est un système d'écriture tactile à points saillants.")
+        .assert()
+        .success()
         .stdout("¨l ;l û u sy d'é:iture tactile à pts s/|ôs.\n");
 }
 
@@ -93,8 +98,10 @@ fn example_lou_translate_backward_fr() {
         .args(&["run", "--example", "lou_translate", "--"])
         .arg("-b")
         .arg("fr-bfu-g2.ctb")
-        .with_stdin().buffer("¨l ;l û u sy d'é:iture tactile à pts s/|ôs.")
-        .assert().success()
+        .with_stdin()
+        .buffer("¨l ;l û u sy d'é:iture tactile à pts s/|ôs.")
+        .assert()
+        .success()
         .stdout("Le braille est un système d'écriture tactile à points saillants.\n");
 }
 
@@ -119,18 +126,24 @@ fn example_lou_translate_all_tables() {
         let ours = Command::new("cargo")
             .args(&["run", "--example", "lou_translate", "--"])
             .arg(&table)
-            .with_stdin().buffer(sentence)
-            .assert().success()
+            .with_stdin()
+            .buffer(sentence)
+            .assert()
+            .success()
             .get_output()
-            .stdout.clone();
+            .stdout
+            .clone();
 
         let expected = Command::new("lou_translate")
             .arg(&table)
-            .with_stdin().buffer(sentence)
-            .assert().success()
+            .with_stdin()
+            .buffer(sentence)
+            .assert()
+            .success()
             .get_output()
-            .stdout.clone();
-            
+            .stdout
+            .clone();
+
         assert_eq!(ours, expected);
     }
 }

@@ -1,6 +1,5 @@
 use super::*;
 
-
 use semver_parser::version;
 use std::{
     ffi::{CStr, CString},
@@ -30,7 +29,7 @@ macro_rules! test {
     };
 }
 
-test!{
+test! {
 fn liblouis_version() {
     let version_str = unsafe { CStr::from_ptr(lou_version()) }.to_str().unwrap();
     assert!(
@@ -40,7 +39,7 @@ fn liblouis_version() {
     println!("liblouis version: {}", version_str);
 }}
 
-test!{
+test! {
 fn liblouis_charsize() {
     let charsize = unsafe { lou_charSize() };
     assert!(
@@ -50,7 +49,7 @@ fn liblouis_charsize() {
     println!("liblouis character size: {} bytes", charsize);
 }}
 
-test!{
+test! {
 fn liblouis_tables() {
     println!("liblouis tables:");
     let mut offset = 0;
@@ -58,7 +57,7 @@ fn liblouis_tables() {
         let list_begin = lou_listTables();
         loop {
             let ptr = *(list_begin.offset(offset));
-            if ptr == std::ptr::null() {
+            if ptr.is_null() {
                 break;
             }
             let table_name = Path::new(CStr::from_ptr(ptr).to_str().unwrap())
@@ -75,7 +74,7 @@ fn liblouis_tables() {
     println!("Found {} tables in total.", offset);
 }}
 
-test!{
+test! {
 fn liblouis_roundtrip2() {
     // ASCII only so we don't have to deal with utf8/utf16 issues for now
     let sentence = "This is an example sentence.";
@@ -86,8 +85,9 @@ fn liblouis_roundtrip2() {
     let mut outlen = outbuf.capacity() as std::os::raw::c_int;
 
     let res = unsafe {
+        let table = CString::new("en_US.tbl").unwrap();
         lou_translateString(
-            CString::new("en_US.tbl").unwrap().as_ptr(),
+            table.as_ptr(),
             inbuf.as_ptr(),
             &mut inlen as *mut _,
             outbuf.as_mut_ptr(),
@@ -107,8 +107,9 @@ fn liblouis_roundtrip2() {
     let mut outlen = outbuf.capacity() as std::os::raw::c_int;
 
     let res = unsafe {
+        let table = CString::new("en_US.tbl").unwrap();
         lou_backTranslateString(
-            CString::new("en_US.tbl").unwrap().as_ptr(),
+            table.as_ptr(),
             inbuf.as_ptr(),
             &mut inlen as *mut _,
             outbuf.as_mut_ptr(),
@@ -126,7 +127,7 @@ fn liblouis_roundtrip2() {
     let new_sentence = String::from_utf8(finalbuf.iter().map(|w| *w as u8).collect()).unwrap();
     assert_eq!(*sentence, *new_sentence);
 }}
-test!{
+test! {
 fn liblouis_roundtrip() {
     // ASCII only so we don't have to deal with utf8/utf16 issues for now
     let sentence = "This is an example sentence.";
@@ -137,8 +138,9 @@ fn liblouis_roundtrip() {
     let mut outlen = outbuf.capacity() as std::os::raw::c_int;
 
     let res = unsafe {
+        let table = CString::new("en_US.tbl").unwrap();
         lou_translateString(
-            CString::new("en_US.tbl").unwrap().as_ptr(),
+            table.as_ptr(),
             inbuf.as_ptr(),
             &mut inlen as *mut _,
             outbuf.as_mut_ptr(),
@@ -158,8 +160,9 @@ fn liblouis_roundtrip() {
     let mut outlen = outbuf.capacity() as std::os::raw::c_int;
 
     let res = unsafe {
+        let table = CString::new("en_US.tbl").unwrap();
         lou_backTranslateString(
-            CString::new("en_US.tbl").unwrap().as_ptr(),
+            table.as_ptr(),
             inbuf.as_ptr(),
             &mut inlen as *mut _,
             outbuf.as_mut_ptr(),
@@ -178,7 +181,7 @@ fn liblouis_roundtrip() {
     assert_eq!(*sentence, *new_sentence);
 }}
 
-test!{
+test! {
 fn liblouis_logging() {
     message_counter.store(0, Ordering::Relaxed);
     unsafe extern "C" fn log_callback(level: logLevels, message: *const ::std::os::raw::c_char) {
@@ -192,7 +195,7 @@ fn liblouis_logging() {
     // Install our custom stdout log callback and lower the log level to be more noisy
     unsafe {
         lou_registerLogCallback(Some(log_callback));
-        lou_setLogLevel(logLevels_LOG_ALL);
+        lou_setLogLevel(logLevels_LOU_LOG_ALL);
     }
     let sentence = "Let's translate this sentence to test logging";
 
@@ -202,8 +205,9 @@ fn liblouis_logging() {
     let mut outlen = outbuf.capacity() as std::os::raw::c_int;
 
     let res = unsafe {
+        let table = CString::new("en_US.tbl").unwrap();
         lou_translateString(
-            CString::new("en_US.tbl").unwrap().as_ptr(),
+            table.as_ptr(),
             inbuf.as_ptr(),
             &mut inlen as *mut _,
             outbuf.as_mut_ptr(),
@@ -221,6 +225,6 @@ fn liblouis_logging() {
     // Reset log level and callback
     unsafe {
         lou_registerLogCallback(None);
-        lou_setLogLevel(logLevels_LOG_INFO);
+        lou_setLogLevel(logLevels_LOU_LOG_INFO);
     }
 }}

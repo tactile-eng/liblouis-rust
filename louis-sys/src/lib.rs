@@ -4,7 +4,7 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 
 // Whether or not we (the -sys crate) hold the token right now.
-static HAVE_TOKEN : AtomicBool = AtomicBool::new(true);
+static HAVE_TOKEN: AtomicBool = AtomicBool::new(true);
 
 /// A token that can only ever exist once in the context of an entire process.
 /// This is needed since liblouis is inherently thread-unsafe.
@@ -28,12 +28,9 @@ impl Drop for ThreadUnsafetyToken {
     fn drop(&mut self) {
         if HAVE_TOKEN.swap(true, Ordering::SeqCst) {
             panic!("Tried to drop ThreadUnsafetyToken back but we're also holding one. Something is very wrong and UB is likely!")
-        } else {
-            ()
         }
     }
 }
-
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
